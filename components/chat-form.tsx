@@ -50,8 +50,12 @@ export function ChatForm({ className, ...props }: React.ComponentProps<"form">) 
       <p className="text-muted-foreground tect-sum">
       How can I help?
       </p>
+      <p className="discord ">
+      </p>
     </header>
   )
+
+  
 
   const messageList = (
     <div className="my-4 flex h-fit min-h-full flex-col gap-4">
@@ -128,7 +132,23 @@ export function ChatForm({ className, ...props }: React.ComponentProps<"form">) 
             <TooltipContent sideOffset={12}>Send message</TooltipContent>
           </Tooltip>
         </form>
+        <footer className="text-center py-0 mt-0text-sm text-muted-foreground">
+    <p>Discord 👾 :{" "}
+      <a
+        href="https://discord.gg/r5bpVWYvxs"
+        className="text-blue-500 hover:text-blue-600"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        NadeX
+      </a>
+    </p>
+  </footer>
       </main>
     </TooltipProvider>
+    
+    
   )
+  
+  
 }
