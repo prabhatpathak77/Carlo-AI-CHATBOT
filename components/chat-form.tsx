@@ -133,9 +133,9 @@ export function ChatForm({ className, ...props }: React.ComponentProps<"form">) 
           </Tooltip>
         </form>
         <footer className="text-center py-0 mt-0text-sm text-muted-foreground">
-    <p>Discord 👾 :{" "}
+    <p>Community 💬 :{" "}
       <a
-        href="https://discord.gg/r5bpVWYvxs"
+        href="https://chat.whatsapp.com/FJvnsTIzJxy8iIPPHfIkJ7"
         className="text-blue-500 hover:text-blue-600"
         target="_blank"
         rel="noopener noreferrer"
