@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
   title: "Carlo",
-  description: "Your intelligent conversation partner made by Prabhat.",
+  description: "Your intelligent conversation partner made by Prabhat & Prachi.",
 }
 
 export default function Layout({ children }: { children: ReactNode }) {
