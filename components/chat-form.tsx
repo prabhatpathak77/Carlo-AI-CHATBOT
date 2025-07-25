@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils"
 import { useChat } from "ai/react"
-import { ArrowUpIcon, Leaf } from "lucide-react"
+import { ArrowUpIcon, Leaf, Copy, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
 import { AutoResizeTextarea } from "@/components/autoresize-textarea"
@@ -10,6 +10,7 @@ import React, { useEffect, useRef } from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import rehypeHighlight from "rehype-highlight"
+import { useState } from "react"
 
 export function ChatForm({ className, ...props }: React.ComponentProps<"form">) {
   const { messages, input, setInput, handleSubmit, isLoading, error } = useChat({
@@ -38,53 +39,143 @@ export function ChatForm({ className, ...props }: React.ComponentProps<"form">) 
     }
   }
 
+  // Enhanced copy button for code blocks
+  const CopyButton = ({ text }: { text: string }) => {
+    const [copied, setCopied] = useState(false)
+    const handleCopy = async () => {
+      try {
+        await navigator.clipboard.writeText(text)
+        console.log(text)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      } catch (err) {
+        console.error('Failed to copy text: ', err)
+      }
+    }
+    return (
+      <button
+        onClick={handleCopy}
+        className="absolute top-2 right-2 z-10 rounded bg-gray-800 px-2 py-1 text-xs text-white hover:bg-gray-700 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1"
+      >
+        {copied ? (
+          <>
+            <Check size={24} />
+            Copied!
+          </>
+        ) : (
+          <>
+            <Copy size={12} />
+            Copy
+          </>
+        )}
+      </button>
+    )
+  }
+
+  // Message copy button
+  const MessageCopyButton = ({ text, messageRole }: { text: string; messageRole: string }) => {
+    const [copied, setCopied] = useState(false)
+    
+    const handleCopy = async () => {
+      try {
+        // Ensure text is a string and handle potential objects
+        const textToCopy = typeof text === 'string' ? text : String(text || '')
+        await navigator.clipboard.writeText(textToCopy)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      } catch (err) {
+        console.error('Failed to copy message: ', err)
+      }
+    }
+
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={handleCopy}
+            className={cn(
+              "absolute top-1 right-1 sm:top-2 sm:right-2 z-10 rounded p-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110 transform",
+              messageRole === "user" 
+                ? "bg-blue-600 text-white hover:bg-blue-700" 
+                : "bg-white text-blue-600 hover:bg-gray-50 border border-blue-200"
+            )}
+          >
+            {copied ? <Check size={10} className="sm:w-3 sm:h-3" /> : <Copy size={10} className="sm:w-3 sm:h-3" />}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          {copied ? "Copied to clipboard!" : "Copy message"}
+        </TooltipContent>
+      </Tooltip>
+    )
+  }
+
   const header = (
-    <header className="m-auto flex max-w-3xl flex-col gap-5 text-center">
-      <h1 className="text-3xl font-semibold leading-none tracking-tight text-primary">
+    <header className="m-auto flex max-w-3xl flex-col gap-3 sm:gap-5 text-center px-4">
+      <h1 className="text-2xl sm:text-3xl font-semibold leading-none tracking-tight text-primary">
         <Leaf className="inline-block mr-0" /> Carlo
       </h1>
       
       <p className="text-muted-foreground text-sm">
-      Smart conversations start here!!!
+        Smart conversations start here!!!
       </p>
-      <p className="text-muted-foreground tect-sum">
-      How can I help?
+      <p className="text-muted-foreground text-sm">
+        How can I help?
       </p>
       <p className="discord ">
       </p>
     </header>
   )
 
-  
-
   const messageList = (
-    <div className="my-4 flex h-fit min-h-full flex-col gap-4">
+    <div className="my-4 flex h-fit min-h-full flex-col gap-3 sm:gap-4">
       {messages.map((message, index) => (
         <div
           key={index}
           data-role={message.role}
           className={cn(
-            "max-w-[80%] rounded-xl px-4 py-3 text-sm",
+            "group relative max-w-[85%] sm:max-w-[80%] rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-sm",
             message.role === "user"
               ? "self-end bg-blue-500 text-white"
               : "self-start bg-blue-200 text-blue-900"
           )}
         >
+          {/* Copy button for the entire message */}
+          <MessageCopyButton text={message.content} messageRole={message.role} />
+          
           {/* Render Markdown with custom styling for code blocks */}
           <ReactMarkdown
-            className="prose prose-blue break-words"
+            className="prose prose-blue break-words pr-6 sm:pr-8"
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeHighlight]}
             components={{
               code({ node, inline, className, children, ...props }) {
+                // Utility function to extract raw string from nested React children
+                const extractText = (node: any): string => {
+                  if (typeof node === "string") return node;
+                  if (Array.isArray(node)) return node.map(extractText).join("");
+                  if (typeof node === "object" && node?.props?.children) {
+                    return extractText(node.props.children);
+                  }
+                  return "";
+                };
+              
+                const rawCode = extractText(children);
+              
                 return inline ? (
-                  <code className="bg-gray-200 px-1 py-0.5 rounded text-sm text-gray-800">{children}</code>
+                  <code className="bg-gray-200 px-1 py-0.5 rounded text-sm text-gray-800">
+                    {children}
+                  </code>
                 ) : (
-                  <pre className="bg-gray-900 text-white p-3 rounded-md overflow-auto">
-                    <code className="text-sm">{children}</code>
-                  </pre>
-                )
-              },
+                  <div className="group relative">
+                    <pre className="bg-gray-900 text-white p-2 sm:p-3 rounded-md overflow-auto text-xs sm:text-sm">
+                      <CopyButton text={rawCode} />
+                      <code>{children}</code>
+                    </pre>
+                  </div>
+                );
+              }
+n              
             }}
           >
             {message.content}
@@ -104,51 +195,50 @@ export function ChatForm({ className, ...props }: React.ComponentProps<"form">) 
         )}
         {...props}
       >
-        <div className="flex-1 content-center overflow-y-auto px-6 py-8">{messages.length ? messageList : header}</div>
-        {isLoading && <div className="text-center text-sm text-muted-foreground">Thinking...</div>}
-        {error && <div className="text-center text-sm text-destructive">Error: {error.message}</div>}
+        <div className="flex-1 content-center overflow-y-auto px-3 sm:px-6 py-4 sm:py-8">{messages.length ? messageList : header}</div>
+        {isLoading && <div className="text-center text-sm text-muted-foreground px-4">Thinking...</div>}
+        {error && <div className="text-center text-sm text-destructive px-4">Error: {error.message}</div>}
         <form
           onSubmit={onSubmit}
-          className="border-input bg-white focus-within:ring-ring/10 relative mx-6 mb-6 flex items-center rounded-full border-2 border-blue-500 px-4 py-2 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2"
+          className="border-input bg-white focus-within:ring-ring/10 relative mx-3 sm:mx-6 mb-3 sm:mb-6 flex items-center rounded-full border-2 border-blue-500 px-3 sm:px-4 py-2 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2"
         >
-          <AutoResizeTextarea
-            onKeyDown={handleKeyDown}
-            onChange={(v) => setInput(v)}
-            value={input}
-            placeholder="What's on your mind...?"
-            className="placeholder:text-muted-foreground flex-1 bg-transparent focus:outline-none resize-none"
-          />
+          <div className="flex-1 min-h-[40px] max-h-[120px] overflow-hidden">
+            <AutoResizeTextarea
+              onKeyDown={handleKeyDown}
+              onChange={(v) => setInput(v)}
+              value={input}
+              placeholder="What's on your mind...?"
+              className="placeholder:text-muted-foreground w-full bg-transparent focus:outline-none resize-none min-h-[40px] max-h-[100px] py-2"
+              rows={1}
+            />
+          </div>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 type="submit"
                 size="icon"
-                className="h-8 w-8 rounded-full bg-blue-500 text-white hover:bg-blue-600"
+                className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-blue-500 text-white hover:bg-blue-600 ml-2 flex-shrink-0"
                 disabled={isLoading}
               >
-                <ArrowUpIcon size={16} />
+                <ArrowUpIcon size={14} className="sm:w-4 sm:h-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent sideOffset={12}>Send message</TooltipContent>
           </Tooltip>
         </form>
-        <footer className="text-center py-0 mt-0text-sm text-muted-foreground">
-    <p>Community 💬 :{" "}
-      <a
-        href="https://chat.whatsapp.com/FJvnsTIzJxy8iIPPHfIkJ7"
-        className="text-blue-500 hover:text-blue-600"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        NadeX
-      </a>
-    </p>
-  </footer>
+        <footer className="text-center py-2 sm:py-0 mt-0 text-xs sm:text-sm text-muted-foreground px-4">
+          <p>Community 💬 :{" "}
+            <a
+              href="https://chat.whatsapp.com/FJvnsTIzJxy8iIPPHfIkJ7"
+              className="text-blue-500 hover:text-blue-600"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              NadeX
+            </a>
+          </p>
+        </footer>
       </main>
     </TooltipProvider>
-    
-    
   )
-  
-  
 }
