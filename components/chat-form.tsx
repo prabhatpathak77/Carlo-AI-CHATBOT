@@ -174,8 +174,7 @@ export function ChatForm({ className, ...props }: React.ComponentProps<"form">) 
                     </pre>
                   </div>
                 );
-              }
-n              
+              }            
             }}
           >
             {message.content}
