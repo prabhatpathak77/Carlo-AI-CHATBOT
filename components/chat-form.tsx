@@ -134,11 +134,10 @@ export function ChatForm({ className, ...props }: React.ComponentProps<"form">) 
           key={index}
           data-role={message.role}
           className={cn(
-            "absolute top-1 right-1 sm:top-2 sm:right-2 z-10 rounded p-1 text-xs transition-opacity transform hover:scale-110",
-            "opacity-100 sm:opacity-0 sm:group-hover:opacity-100", // 👈 always visible on phone
+            "group relative max-w-[85%] sm:max-w-[80%] rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-sm",
             message.role === "user"
-              ? "bg-blue-600 text-white hover:bg-blue-700"
-              : "bg-white text-blue-600 hover:bg-gray-50 border border-blue-200"
+              ? "self-end bg-blue-500 text-white"
+              : "self-start bg-blue-200 text-blue-900"
           )}
         >
           {/* Copy button for the entire message */}
